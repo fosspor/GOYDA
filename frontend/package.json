@@ -10,15 +10,10 @@
     "zustand": "^4.4.2",
     "tailwindcss": "^3.3.6",
     "react-icons": "^4.12.0",
-    "leaflet": "^1.9.4",
-    "react-leaflet": "^4.2.3",
-    "swiper": "^11.0.3",
-    "yet-another-react-lightbox": "^3.14.0",
     "date-fns": "^2.30.0",
-    "react-ical": "^0.1.5",
-    "embla-carousel-react": "^7.1.0",
     "clsx": "^2.0.0",
-    "framer-motion": "^10.16.4"
+    "framer-motion": "^10.16.4",
+    "lucide-react": "^0.294.0"
   },
   "devDependencies": {
     "react-scripts": "5.0.1",

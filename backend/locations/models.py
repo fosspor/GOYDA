@@ -3,7 +3,6 @@ Models for locations app - storing attractions, restaurants, wineries, etc.
 """
 
 from django.db import models
-from django.contrib.gis.db import models as gis_models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 
@@ -70,7 +69,8 @@ class Location(models.Model):
     
     # Location
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='locations')
-    location = gis_models.PointField(help_text='Geographic coordinates (lat, long)')
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, validators=[MinValueValidator(-90), MaxValueValidator(90)])
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, validators=[MinValueValidator(-180), MaxValueValidator(180)])
     address = models.CharField(max_length=300)
     region = models.CharField(max_length=100, default='Краснодарский край')
     
@@ -118,7 +118,7 @@ class Location(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    objects = gis_models.Manager()
+    objects = models.Manager()
     
     class Meta:
         ordering = ['-featured', '-rating']

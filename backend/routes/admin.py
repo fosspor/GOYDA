@@ -1,4 +1,4 @@
-"""Django admin configuration for routes app."""
+
 from django.contrib import admin
 from .models import Route, RouteLocation, RouteInterest
 
