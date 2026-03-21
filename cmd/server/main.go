@@ -104,7 +104,11 @@ func main() {
 		<-ctx.Done()
 		_ = app.Shutdown()
 	}()
-	if err := app.Listen(cfg.HTTPAddr); err != nil && err != fiber.ErrServerClosed {
+	if err := app.Listen(cfg.HTTPAddr); err != nil {
+		// При штатном Shutdown() не считаем это фатальной ошибкой запуска.
+		if ctx.Err() != nil {
+			return
+		}
 		log.Fatalf("listen: %v", err)
 	}
 }
