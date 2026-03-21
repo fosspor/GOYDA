@@ -24,6 +24,7 @@ Health: `GET /health`
 ```
 
 Подробный чеклист (браузер, без Docker): [`docs/local-smoke.md`](docs/local-smoke.md).  
+Полная документация API: [`docs/API.md`](docs/API.md).  
 CI после изменений в `main`: [Actions](https://github.com/fosspor/GOYDA/actions).
 
 Идеи следующих итераций: [`docs/NEXT.md`](docs/NEXT.md).
@@ -110,7 +111,7 @@ go run ./cmd/server
 | GET | `/api/weather/point` | Погода в точке (`lat`,`lng`) |
 | POST | `/api/routes/weather-aware` | Маршрут по погоде + сохранение (JWT) |
 
-Контракт подробнее: [`api/openapi.yaml`](./api/openapi.yaml).
+Контракт подробнее: [`api/openapi.yaml`](./api/openapi.yaml) и [`docs/API.md`](docs/API.md).
 
 ## Лицензия
 
