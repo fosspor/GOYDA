@@ -32,14 +32,14 @@ func Register(app *fiber.App) {
 			if err != nil {
 				return c.SendStatus(fiber.StatusNotFound)
 			}
-			c.Type("text/html; charset=utf-8")
+			c.Set(fiber.HeaderContentType, "text/html; charset=utf-8")
 			return c.Send(data)
 		}
 		ct := mime.TypeByExtension(filepath.Ext(p))
 		if ct == "" {
 			ct = "application/octet-stream"
 		}
-		c.Type(ct)
+		c.Set(fiber.HeaderContentType, ct)
 		return c.Send(data)
 	})
 }
