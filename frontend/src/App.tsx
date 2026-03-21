@@ -27,7 +27,7 @@ import {
 } from './api'
 import { useAuth } from './useAuth'
 import { NAV_GROUPS, NAV_ITEMS } from './nav'
-import type { Location, RouteItem, User, WeatherAwareRoute } from './types'
+import type { GenerateRouteResponse, Location, RouteItem, User, WeatherAwareRoute } from './types'
 
 function parseCSV(value: string): string[] {
   return value.split(',').map((v) => v.trim()).filter(Boolean)
@@ -229,7 +229,7 @@ function LocationsPage() {
   const load = useCallback(async (q = '') => {
     try {
       const data = await listLocations(q)
-      setItems(data)
+      setItems(Array.isArray(data) ? data : data.items)
       setError('')
     } catch (e) {
       setError((e as Error).message)
@@ -241,7 +241,7 @@ function LocationsPage() {
       try {
         const data = await listLocations('')
         if (!cancelled) {
-          setItems(data)
+          setItems(Array.isArray(data) ? data : data.items)
           setError('')
         }
       } catch (e) {
@@ -583,10 +583,13 @@ function AIPage() {
   const [season, setSeason] = useState('summer')
   const [days, setDays] = useState(3)
   const [notes, setNotes] = useState('')
-  const [result, setResult] = useState<Record<string, unknown> | null>(null)
+  const [result, setResult] = useState<GenerateRouteResponse | null>(null)
   const [error, setError] = useState('')
   const [saveMsg, setSaveMsg] = useState('')
-  const routePayload = useMemo(() => (result?.route ?? result?.raw ?? {}), [result])
+  const routePayload = useMemo(() => {
+    if (!result?.route || typeof result.route !== 'object') return {}
+    return result.route
+  }, [result])
   const onGenerate = async (e: FormEvent) => {
     e.preventDefault()
     try {

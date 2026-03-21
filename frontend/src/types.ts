@@ -30,6 +30,29 @@ export type GeoPoint = {
   lng: number
 }
 
+export type PointWeather = {
+  source: string
+  lat: number
+  lng: number
+  temp_c: number
+  condition: string
+  wind_speed_ms: number
+}
+
+/** Ответ POST /api/ai/generate-route (единый контракт) */
+export type GenerateRouteResponse = {
+  source: 'mock' | 'yandex'
+  user_id: string | null
+  route: Record<string, unknown>
+}
+
+export type LocationsPage = {
+  items: Location[]
+  total: number
+  limit: number
+  offset: number
+}
+
 export type WeatherAwareRoute = {
   source: {
     routing: string

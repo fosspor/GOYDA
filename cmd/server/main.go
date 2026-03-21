@@ -89,10 +89,14 @@ func main() {
 	app.Get("/api/locations", api.ListLocations)
 	app.Get("/api/locations/:id", api.GetLocation)
 	app.Post("/api/locations", j, api.CreateLocation)
+	app.Patch("/api/locations/:id", j, api.PatchLocation)
+	app.Delete("/api/locations/:id", j, api.DeleteLocation)
 
 	app.Get("/api/routes", j, api.ListMyRoutes)
 	app.Post("/api/routes", j, api.CreateRoute)
 	app.Get("/api/routes/:id", j, api.GetRoute)
+	app.Patch("/api/routes/:id", j, api.PatchRoute)
+	app.Delete("/api/routes/:id", j, api.DeleteRoute)
 
 	app.Post("/api/ai/generate-route", api.GenerateRoute)
 	app.Get("/api/ai/recommendations", api.AIRecommendations)

@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: GOYDA API
-  version: 1.1.0
+  version: 1.2.0
   description: API персональных маршрутов (Краснодарский край)
 servers:
   - url: http://localhost:8080
@@ -99,15 +99,30 @@ paths:
           name: search
           schema:
             type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+          description: Если задан limit или offset — ответ объект с пагинацией
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            minimum: 0
       responses:
         "200":
-          description: OK
+          description: OK — массив без пагинации или объект при limit/offset
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Location"
+                oneOf:
+                  - type: array
+                    items:
+                      $ref: "#/components/schemas/Location"
+                  - $ref: "#/components/schemas/LocationsPage"
+        "400":
+          $ref: "#/components/responses/ErrorBadRequest"
     post:
       summary: Create location
       security:
@@ -148,6 +163,56 @@ paths:
                 $ref: "#/components/schemas/Location"
         "400":
           $ref: "#/components/responses/ErrorBadRequest"
+        "404":
+          $ref: "#/components/responses/ErrorNotFound"
+    patch:
+      summary: Update location (partial)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LocationPatchRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Location"
+        "400":
+          $ref: "#/components/responses/ErrorBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrorUnauthorized"
+        "404":
+          $ref: "#/components/responses/ErrorNotFound"
+    delete:
+      summary: Delete location
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: No Content
+        "400":
+          $ref: "#/components/responses/ErrorBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrorUnauthorized"
         "404":
           $ref: "#/components/responses/ErrorNotFound"
   /api/routes:
@@ -206,6 +271,56 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Route"
+        "400":
+          $ref: "#/components/responses/ErrorBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrorUnauthorized"
+        "404":
+          $ref: "#/components/responses/ErrorNotFound"
+    patch:
+      summary: Update my route (partial)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoutePatchRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Route"
+        "400":
+          $ref: "#/components/responses/ErrorBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrorUnauthorized"
+        "404":
+          $ref: "#/components/responses/ErrorNotFound"
+    delete:
+      summary: Delete my route
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: No Content
         "400":
           $ref: "#/components/responses/ErrorBadRequest"
         "401":
@@ -460,6 +575,47 @@ components:
           type: array
           items:
             type: string
+    LocationsPage:
+      type: object
+      required:
+        - items
+        - total
+        - limit
+        - offset
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Location"
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+    LocationPatchRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        seasons:
+          type: array
+          items:
+            type: string
+        lat:
+          type: number
+          nullable: true
+        lng:
+          type: number
+          nullable: true
+        media_urls:
+          type: array
+          items:
+            type: string
     Route:
       type: object
       properties:
@@ -496,6 +652,16 @@ components:
         payload:
           type: object
           additionalProperties: true
+    RoutePatchRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        season:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
     GenerateRouteRequest:
       type: object
       properties:
@@ -521,9 +687,10 @@ components:
         route:
           type: object
           additionalProperties: true
-        raw:
-          type: object
-          additionalProperties: true
+          description: Единый контейнер; mock — title/summary/stops/kind; yandex LLM — kind llm, text, опционально json
+      required:
+        - source
+        - route
     RecommendationsResponse:
       type: object
       properties:

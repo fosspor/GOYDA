@@ -1,4 +1,12 @@
-import type { Location, RouteItem, User, WeatherAwareRoute } from './types'
+import type {
+  GenerateRouteResponse,
+  Location,
+  LocationsPage,
+  PointWeather,
+  RouteItem,
+  User,
+  WeatherAwareRoute,
+} from './types'
 
 /** Не задано в .env → dev на :3000 ходит на :8080. Пустая строка в .env → тот же origin (embed в Docker). */
 const raw = import.meta.env.VITE_API_URL
@@ -48,7 +56,11 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   if (res.status === 204) {
     return undefined as T
   }
-  return (await res.json()) as T
+  const text = await res.text()
+  if (!text) {
+    return undefined as T
+  }
+  return JSON.parse(text) as T
 }
 
 export async function register(payload: {
@@ -72,9 +84,29 @@ export async function patchMe(token: string, interests: string[]): Promise<User>
   return request('/api/me', { method: 'PATCH', token, body: { interests } })
 }
 
-export async function listLocations(search = ''): Promise<Location[]> {
-  const q = search ? `?search=${encodeURIComponent(search)}` : ''
-  return request(`/api/locations${q}`)
+export async function listLocations(
+  search = '',
+  page?: { limit: number; offset?: number },
+): Promise<Location[] | LocationsPage> {
+  const params = new URLSearchParams()
+  if (search) params.set('search', search)
+  if (page) {
+    params.set('limit', String(page.limit))
+    params.set('offset', String(page.offset ?? 0))
+  }
+  const qs = params.toString()
+  const path = qs ? `/api/locations?${qs}` : '/api/locations'
+  const data = await request<unknown>(path)
+  if (page) {
+    const p = data as Partial<LocationsPage>
+    return {
+      items: Array.isArray(p.items) ? p.items : [],
+      total: typeof p.total === 'number' ? p.total : 0,
+      limit: typeof p.limit === 'number' ? p.limit : page.limit,
+      offset: typeof p.offset === 'number' ? p.offset : page.offset ?? 0,
+    }
+  }
+  return Array.isArray(data) ? (data as Location[]) : []
 }
 
 export async function getLocation(id: string): Promise<Location> {
@@ -88,8 +120,21 @@ export async function createLocation(
   return request('/api/locations', { method: 'POST', token, body: payload })
 }
 
+export async function patchLocation(
+  token: string,
+  id: string,
+  payload: Partial<Omit<Location, 'id'>>,
+): Promise<Location> {
+  return request(`/api/locations/${id}`, { method: 'PATCH', token, body: payload })
+}
+
+export async function deleteLocation(token: string, id: string): Promise<void> {
+  await request(`/api/locations/${id}`, { method: 'DELETE', token })
+}
+
 export async function listRoutes(token: string): Promise<RouteItem[]> {
-  return request('/api/routes', { token })
+  const data = await request<unknown>('/api/routes', { token })
+  return Array.isArray(data) ? (data as RouteItem[]) : []
 }
 
 export async function getRoute(token: string, id: string): Promise<RouteItem> {
@@ -100,18 +145,39 @@ export async function createRoute(token: string, payload: { title: string; seaso
   return request('/api/routes', { method: 'POST', token, body: payload })
 }
 
+export async function patchRoute(
+  token: string,
+  id: string,
+  payload: Partial<{ title: string; season: string; payload: unknown }>,
+): Promise<RouteItem> {
+  return request(`/api/routes/${id}`, { method: 'PATCH', token, body: payload })
+}
+
+export async function deleteRoute(token: string, id: string): Promise<void> {
+  await request(`/api/routes/${id}`, { method: 'DELETE', token })
+}
+
 export async function aiGenerate(payload: {
   interests: string[]
   season: string
   days: number
   notes: string
-}, token?: string | null): Promise<Record<string, unknown>> {
+}, token?: string | null): Promise<GenerateRouteResponse> {
   return request('/api/ai/generate-route', { method: 'POST', token, body: payload })
 }
 
 export async function aiRecommendations(season: string): Promise<{ season: string; items: Location[] }> {
   const q = season ? `?season=${encodeURIComponent(season)}` : ''
-  return request(`/api/ai/recommendations${q}`)
+  const data = await request<{ season?: string; items?: unknown }>(`/api/ai/recommendations${q}`)
+  return {
+    season: data.season ?? season,
+    items: Array.isArray(data.items) ? (data.items as Location[]) : [],
+  }
+}
+
+export async function weatherPoint(lat: number, lng: number): Promise<PointWeather> {
+  const q = `?lat=${encodeURIComponent(String(lat))}&lng=${encodeURIComponent(String(lng))}`
+  return request(`/api/weather/point${q}`)
 }
 
 export async function weatherAwareRoute(

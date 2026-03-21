@@ -44,10 +44,14 @@ func (a *API) GenerateRoute(c *fiber.Ctx) error {
 	if a.LLM.Enabled() {
 		raw, err := a.LLM.CompletionRaw(ctx, prompt)
 		if err == nil {
+			route := fiber.Map{"kind": "llm", "text": raw}
+			if json.Valid([]byte(raw)) {
+				route["json"] = json.RawMessage([]byte(raw))
+			}
 			return c.JSON(fiber.Map{
 				"source":  "yandex",
-				"raw":     json.RawMessage([]byte(raw)),
 				"user_id": uid,
+				"route":   route,
 			})
 		}
 	}
@@ -55,8 +59,8 @@ func (a *API) GenerateRoute(c *fiber.Ctx) error {
 	mock := buildMockRoute(b, locs)
 	return c.JSON(fiber.Map{
 		"source":  "mock",
-		"route":   mock,
 		"user_id": uid,
+		"route":   mock,
 	})
 }
 
@@ -94,6 +98,7 @@ func buildMockRoute(b generateRouteBody, locs []store.Location) fiber.Map {
 		})
 	}
 	return fiber.Map{
+		"kind":    "mock",
 		"title":   fmt.Sprintf("Маршрут на %d дн. (%s)", b.Days, b.Season),
 		"summary": "Черновик маршрута (mock). Подключите Yandex LLM для генерации текста.",
 		"stops":   stops,
@@ -123,5 +128,9 @@ func (a *API) AIRecommendations(c *fiber.Ctx) error {
 	if len(out) > 20 {
 		out = out[:20]
 	}
-	return c.JSON(fiber.Map{"season": season, "items": out})
+	items := out
+	if items == nil {
+		items = []store.Location{}
+	}
+	return c.JSON(fiber.Map{"season": season, "items": items})
 }
