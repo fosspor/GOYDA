@@ -15,6 +15,28 @@ docker compose up --build
 API: `http://localhost:8080`  
 Health: `GET /health`
 
+## Фронтенд (SPA)
+
+В репозитории есть клиент на `Vite + React + TypeScript` в [`frontend`](./frontend). Интерфейс оформлен как справочник эндпоинтов в духе [alt:V NativeDB](https://natives.altv.mp/): тёмная тема, боковая навигация с группами и поиском.
+
+1. Запустите API и БД:
+
+```bash
+docker compose up --build
+```
+
+2. В отдельном терминале запустите фронтенд:
+
+```bash
+cd frontend
+cp .env.example .env
+npm ci
+npm run dev
+```
+
+SPA: `http://localhost:3000`  
+По умолчанию API берётся из `VITE_API_URL=http://localhost:8080`.
+
 ## Локально (без Docker-образа API)
 
 1. Поднимите только БД: `docker compose up -d db`
@@ -52,18 +74,6 @@ go run ./cmd/server
 | GET | `/api/ai/recommendations` | Подбор по `?season=` |
 
 Контракт подробнее: [`api/openapi.yaml`](./api/openapi.yaml).
-
-## Если осталась папка `frontend/`
-
-На macOS иногда нельзя удалить `node_modules` из песочницы IDE. Удалите вручную в терминале:
-
-```bash
-cd /path/to/GOYDA
-chmod -R u+w frontend 2>/dev/null
-rm -rf frontend
-```
-
-В `.gitignore` добавлено `/frontend/`, чтобы мусор не попадал в коммиты.
 
 ## Лицензия
 

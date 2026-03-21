@@ -17,8 +17,5 @@ vendor/
 .vscode/
 *.swp
 
-# Legacy (удалите вручную: rm -rf frontend, если осталось после миграции)
-/frontend/
-
 # OS
 .DS_Store
