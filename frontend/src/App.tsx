@@ -140,13 +140,7 @@ function HomePage() {
   return (
     <article className="ndb-panel ndb-panel-hero">
       <h1 className="ndb-hero-title">GOYDA / API</h1>
-      <p className="ndb-hero-lead">
-        Оболочка в духе{' '}
-        <a href="https://natives.altv.mp/" target="_blank" rel="noreferrer">
-          alt:V NativeDB
-        </a>
-        : тёмная тема, боковой список и быстрый поиск по эндпоинтам.
-      </p>
+      <p className="ndb-hero-lead">Тёмная тема, боковой список и быстрый поиск по эндпоинтам.</p>
       <dl className="ndb-stats">
         <div>
           <dt>Всего в каталоге</dt>
