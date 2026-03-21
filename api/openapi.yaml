@@ -245,6 +245,51 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RecommendationsResponse"
+  /api/weather/point:
+    get:
+      summary: Weather by point
+      parameters:
+        - in: query
+          name: lat
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: lng
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PointWeather"
+        "400":
+          $ref: "#/components/responses/ErrorBadRequest"
+  /api/routes/weather-aware:
+    post:
+      summary: Build weather-aware route and save it
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WeatherAwareRouteRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeatherAwareRouteResponse"
+        "400":
+          $ref: "#/components/responses/ErrorBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrorUnauthorized"
 components:
   securitySchemes:
     bearerAuth:
@@ -491,3 +536,94 @@ components:
       required:
         - season
         - items
+    PointWeather:
+      type: object
+      properties:
+        source:
+          type: string
+        lat:
+          type: number
+        lng:
+          type: number
+        temp_c:
+          type: number
+        condition:
+          type: string
+        wind_speed_ms:
+          type: number
+      required:
+        - source
+        - lat
+        - lng
+        - temp_c
+        - condition
+        - wind_speed_ms
+    GeoPoint:
+      type: object
+      properties:
+        lat:
+          type: number
+        lng:
+          type: number
+      required:
+        - lat
+        - lng
+    WeatherAwareRouteRequest:
+      type: object
+      properties:
+        from_location_id:
+          type: string
+          format: uuid
+        to_location_id:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date
+        avoid_rain:
+          type: boolean
+        max_wind_ms:
+          type: number
+    WeatherAwareRouteResponse:
+      type: object
+      properties:
+        source:
+          type: object
+          properties:
+            routing:
+              type: string
+            weather_from:
+              type: string
+            weather_to:
+              type: string
+        date:
+          type: string
+        from:
+          $ref: "#/components/schemas/Location"
+        to:
+          $ref: "#/components/schemas/Location"
+        route:
+          type: object
+          properties:
+            distance_m:
+              type: integer
+            duration_s:
+              type: number
+            polyline:
+              type: array
+              items:
+                $ref: "#/components/schemas/GeoPoint"
+        weather:
+          type: object
+          properties:
+            from:
+              $ref: "#/components/schemas/PointWeather"
+            to:
+              $ref: "#/components/schemas/PointWeather"
+        score:
+          type: number
+        reasoning:
+          type: string
+        saved_route_id:
+          type: string
+          format: uuid

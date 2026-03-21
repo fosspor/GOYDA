@@ -13,6 +13,8 @@ type Config struct {
 	CORSOrigins   []string
 	YandexFolder  string
 	YandexAPIKey  string
+	YandexWeatherKey string
+	YandexRoutingKey string
 }
 
 func Load() (Config, error) {
@@ -22,6 +24,14 @@ func Load() (Config, error) {
 		JWTSecret:    strings.TrimSpace(os.Getenv("JWT_SECRET")),
 		YandexFolder: strings.TrimSpace(os.Getenv("YANDEX_FOLDER_ID")),
 		YandexAPIKey: strings.TrimSpace(os.Getenv("YANDEX_API_KEY")),
+		YandexWeatherKey: strings.TrimSpace(os.Getenv("YANDEX_WEATHER_API_KEY")),
+		YandexRoutingKey: strings.TrimSpace(os.Getenv("YANDEX_ROUTING_API_KEY")),
+	}
+	if c.YandexWeatherKey == "" {
+		c.YandexWeatherKey = c.YandexAPIKey
+	}
+	if c.YandexRoutingKey == "" {
+		c.YandexRoutingKey = c.YandexAPIKey
 	}
 	if c.DatabaseURL == "" {
 		return Config{}, fmt.Errorf("DATABASE_URL is required")

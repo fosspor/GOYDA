@@ -88,6 +88,7 @@ go run ./cmd/server
 
 - `MIGRATIONS_DIR` — папка с SQL (по умолчанию `./migrations`).
 - `YANDEX_FOLDER_ID`, `YANDEX_API_KEY` — для живой генерации через Yandex; без них `POST /api/ai/generate-route` отдаёт **mock**-маршрут.
+- `YANDEX_WEATHER_API_KEY`, `YANDEX_ROUTING_API_KEY` — для live-погоды и live-маршрутов; если пусто, используются mock/fallback ответы.
 
 ## Основные эндпоинты
 
@@ -106,6 +107,8 @@ go run ./cmd/server
 | GET | `/api/routes/:id` | Детали (JWT, только свои) |
 | POST | `/api/ai/generate-route` | Генерация (Yandex или mock) |
 | GET | `/api/ai/recommendations` | Подбор по `?season=` |
+| GET | `/api/weather/point` | Погода в точке (`lat`,`lng`) |
+| POST | `/api/routes/weather-aware` | Маршрут по погоде + сохранение (JWT) |
 
 Контракт подробнее: [`api/openapi.yaml`](./api/openapi.yaml).
 

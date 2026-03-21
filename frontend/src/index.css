@@ -363,6 +363,13 @@ ul:not(.ndb-list) {
   margin: 8px 0 0;
 }
 
+.map-wrap {
+  margin: 12px 0;
+  border: 1px solid var(--ndb-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
 code {
   font-family: var(--ndb-mono);
   font-size: 0.85em;

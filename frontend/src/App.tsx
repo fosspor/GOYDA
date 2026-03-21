@@ -23,13 +23,20 @@ import {
   me,
   patchMe,
   register,
+  weatherAwareRoute,
 } from './api'
 import { useAuth } from './useAuth'
 import { NAV_GROUPS, NAV_ITEMS } from './nav'
-import type { Location, RouteItem, User } from './types'
+import type { Location, RouteItem, User, WeatherAwareRoute } from './types'
 
 function parseCSV(value: string): string[] {
   return value.split(',').map((v) => v.trim()).filter(Boolean)
+}
+
+function yandexRouteURL(fromLat: number, fromLng: number, toLat: number, toLng: number) {
+  const from = `${fromLat},${fromLng}`
+  const to = `${toLat},${toLng}`
+  return `https://yandex.ru/maps/?rtext=${encodeURIComponent(from)}~${encodeURIComponent(to)}&rtt=auto`
 }
 
 function Protected({ children }: { children: ReactElement }) {
@@ -633,6 +640,72 @@ function AIPage() {
   )
 }
 
+function WeatherRoutePage() {
+  const { token } = useAuth()
+  const [fromID, setFromID] = useState('')
+  const [toID, setToID] = useState('')
+  const [date, setDate] = useState('')
+  const [avoidRain, setAvoidRain] = useState(true)
+  const [result, setResult] = useState<WeatherAwareRoute | null>(null)
+  const [error, setError] = useState('')
+
+  const onSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!token) return
+    try {
+      const data = await weatherAwareRoute(token, {
+        from_location_id: fromID || undefined,
+        to_location_id: toID || undefined,
+        date: date || undefined,
+        avoid_rain: avoidRain,
+      })
+      setResult(data)
+      setError('')
+    } catch (err) {
+      setError((err as Error).message)
+    }
+  }
+
+  return (
+    <section className="ndb-panel">
+      <h2 className="ndb-panel-title">
+        <span className={methodClass('POST')}>POST</span> WeatherAwareRoute
+      </h2>
+      <p className="ndb-muted">
+        <code>/api/routes/weather-aware</code> — маршрут от Яндекс Routing + погодный риск по Яндекс Погоде.
+      </p>
+      <form className="ndb-form" onSubmit={onSubmit}>
+        <input value={fromID} onChange={(e) => setFromID(e.target.value)} placeholder="from_location_id (optional)" />
+        <input value={toID} onChange={(e) => setToID(e.target.value)} placeholder="to_location_id (optional)" />
+        <input value={date} onChange={(e) => setDate(e.target.value)} placeholder="date YYYY-MM-DD (optional)" />
+        <label className="ndb-label">
+          <input type="checkbox" checked={avoidRain} onChange={(e) => setAvoidRain(e.target.checked)} />
+          {' '}Избегать осадков
+        </label>
+        <button type="submit">Построить маршрут по погоде</button>
+      </form>
+      {error && <p className="error">{error}</p>}
+      {result && (
+        <>
+          <p className="ndb-ok">
+            risk score: {result.score} | saved route: {result.saved_route_id}
+          </p>
+          <p>
+            <a
+              href={yandexRouteURL(result.weather.from.lat, result.weather.from.lng, result.weather.to.lat, result.weather.to.lng)}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Открыть маршрут на Яндекс Картах
+            </a>
+          </p>
+          <pre>{JSON.stringify(result, null, 2)}</pre>
+        </>
+      )}
+    </section>
+  )
+}
+
 function App() {
   return (
     <Routes>
@@ -650,6 +723,7 @@ function App() {
         <Route path="/routes/:id" element={<Protected><RouteDetailsPage /></Protected>} />
         <Route path="/create-location" element={<Protected><CreateLocationPage /></Protected>} />
         <Route path="/ai" element={<AIPage />} />
+        <Route path="/weather-route" element={<Protected><WeatherRoutePage /></Protected>} />
       </Route>
     </Routes>
   )

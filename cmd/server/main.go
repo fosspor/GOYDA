@@ -96,6 +96,8 @@ func main() {
 
 	app.Post("/api/ai/generate-route", api.GenerateRoute)
 	app.Get("/api/ai/recommendations", api.AIRecommendations)
+	app.Get("/api/weather/point", api.WeatherPoint)
+	app.Post("/api/routes/weather-aware", j, api.WeatherAwareRoute)
 
 	spa.Register(app)
 

@@ -24,6 +24,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/locations/lookup', id: 'GetLocation', path: '/api/locations/:id', method: 'GET', group: 'locations' },
   { to: '/recommendations', id: 'AIRecommendations', path: '/api/ai/recommendations', method: 'GET', group: 'ai' },
   { to: '/ai', id: 'GenerateRoute', path: '/api/ai/generate-route', method: 'POST', group: 'ai' },
+  { to: '/weather-route', id: 'WeatherAwareRoute', path: '/api/routes/weather-aware', method: 'POST', group: 'ai', requireAuth: true },
   { to: '/register', id: 'Register', path: '/api/auth/register', method: 'POST', group: 'auth' },
   { to: '/login', id: 'Login', path: '/api/auth/login', method: 'POST', group: 'auth' },
   { to: '/profile', id: 'Me', path: '/api/me', method: 'GET', group: 'profile', requireAuth: true },

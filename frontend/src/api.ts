@@ -1,4 +1,4 @@
-import type { Location, RouteItem, User } from './types'
+import type { Location, RouteItem, User, WeatherAwareRoute } from './types'
 
 /** Не задано в .env → dev на :3000 ходит на :8080. Пустая строка в .env → тот же origin (embed в Docker). */
 const raw = import.meta.env.VITE_API_URL
@@ -112,4 +112,17 @@ export async function aiGenerate(payload: {
 export async function aiRecommendations(season: string): Promise<{ season: string; items: Location[] }> {
   const q = season ? `?season=${encodeURIComponent(season)}` : ''
   return request(`/api/ai/recommendations${q}`)
+}
+
+export async function weatherAwareRoute(
+  token: string,
+  payload: {
+    from_location_id?: string
+    to_location_id?: string
+    date?: string
+    avoid_rain?: boolean
+    max_wind_ms?: number
+  },
+): Promise<WeatherAwareRoute> {
+  return request('/api/routes/weather-aware', { method: 'POST', token, body: payload })
 }

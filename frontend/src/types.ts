@@ -24,3 +24,43 @@ export type RouteItem = {
   payload: unknown
   created_at: string
 }
+
+export type GeoPoint = {
+  lat: number
+  lng: number
+}
+
+export type WeatherAwareRoute = {
+  source: {
+    routing: string
+    weather_from: string
+    weather_to: string
+  }
+  date: string
+  from: Location
+  to: Location
+  route: {
+    distance_m: number
+    duration_s: number
+    polyline: GeoPoint[]
+  }
+  weather: {
+    from: {
+      lat: number
+      lng: number
+      temp_c: number
+      condition: string
+      wind_speed_ms: number
+    }
+    to: {
+      lat: number
+      lng: number
+      temp_c: number
+      condition: string
+      wind_speed_ms: number
+    }
+  }
+  score: number
+  reasoning: string
+  saved_route_id: string
+}
