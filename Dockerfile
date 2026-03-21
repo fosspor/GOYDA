@@ -13,7 +13,7 @@ RUN npm run build
 FROM golang:1.22-alpine AS build
 WORKDIR /src
 RUN apk add --no-cache ca-certificates git
-COPY go.mod go.sum ./
+COPY go.mod ./
 RUN go mod download
 COPY . .
 COPY --from=frontend /fe/dist /src/internal/spa/dist
