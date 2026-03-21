@@ -1,64 +1,24 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-ENV/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-.pytest_cache/
-
-# Django
-*.log
-local_settings.py
-db.sqlite3
-/media
-/staticfiles
-
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-
-# Environment
+# Env
 .env
 .env.local
-.env.*.local
+*.pem
 
-# Node / React
-node_modules/
-npm-debug.log
-yarn-error.log
-.next/
-out/
-build/
+# Go
+/bin/
+/dist/
+/tmp/
+*.exe
+*.test
+*.out
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Legacy (удалите вручную: rm -rf frontend, если осталось после миграции)
+/frontend/
 
 # OS
 .DS_Store
-Thumbs.db
-
-# Project specific
-.env
-*.sqlite
-.coverage
-htmlcov/

@@ -1,0 +1,146 @@
+openapi: 3.0.3
+info:
+  title: GOYDA API
+  version: 1.0.0
+  description: API персональных маршрутов (Краснодарский край)
+servers:
+  - url: http://localhost:8080
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+  /api/auth/register:
+    post:
+      summary: Register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string }
+                password: { type: string, minLength: 6 }
+                display_name: { type: string }
+                interests:
+                  type: array
+                  items: { type: string }
+      responses:
+        "201": { description: Created }
+  /api/auth/login:
+    post:
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        "200": { description: OK }
+  /api/me:
+    get:
+      summary: Current user
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: OK }
+    patch:
+      summary: Update interests
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                interests:
+                  type: array
+                  items: { type: string }
+      responses:
+        "200": { description: OK }
+  /api/locations:
+    get:
+      summary: List locations
+      parameters:
+        - in: query
+          name: search
+          schema: { type: string }
+      responses:
+        "200": { description: OK }
+    post:
+      summary: Create location
+      security: [{ bearerAuth: [] }]
+      responses:
+        "201": { description: Created }
+  /api/locations/{id}:
+    get:
+      summary: Get location
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: OK }
+  /api/routes:
+    get:
+      summary: My routes
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200": { description: OK }
+    post:
+      summary: Create route
+      security: [{ bearerAuth: [] }]
+      responses:
+        "201": { description: Created }
+  /api/routes/{id}:
+    get:
+      summary: Get my route
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: OK }
+  /api/ai/generate-route:
+    post:
+      summary: Generate route (Yandex or mock)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                interests:
+                  type: array
+                  items: { type: string }
+                season: { type: string }
+                days: { type: integer }
+                notes: { type: string }
+      responses:
+        "200": { description: OK }
+  /api/ai/recommendations:
+    get:
+      summary: Recommendations by season
+      parameters:
+        - in: query
+          name: season
+          schema: { type: string }
+      responses:
+        "200": { description: OK }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
