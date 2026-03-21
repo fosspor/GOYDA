@@ -16,6 +16,7 @@ RUN apk add --no-cache ca-certificates git
 COPY go.mod ./
 RUN go mod download
 COPY . .
+RUN go mod tidy
 COPY --from=frontend /fe/dist /src/internal/spa/dist
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -tags embed -o /out/server ./cmd/server
 
