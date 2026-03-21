@@ -1,6 +1,9 @@
 import type { Location, RouteItem, User } from './types'
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+/** Не задано в .env → dev на :3000 ходит на :8080. Пустая строка в .env → тот же origin (embed в Docker). */
+const raw = import.meta.env.VITE_API_URL
+const API_PREFIX =
+  raw === undefined ? 'http://localhost:8080'.replace(/\/$/, '') : String(raw).replace(/\/$/, '')
 
 type RequestOptions = {
   method?: string
@@ -15,7 +18,7 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   if (opts.token) {
     headers.Authorization = `Bearer ${opts.token}`
   }
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(`${API_PREFIX}${path}`, {
     method: opts.method ?? 'GET',
     headers,
     body: opts.body ? JSON.stringify(opts.body) : undefined,

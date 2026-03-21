@@ -125,7 +125,9 @@ function Layout() {
 }
 
 function HomePage() {
-  const base = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+  const raw = import.meta.env.VITE_API_URL
+  const base =
+    raw === undefined ? 'http://localhost:8080' : raw === '' ? 'same origin (как у страницы)' : String(raw)
   const publicCount = NAV_ITEMS.filter((i) => !i.requireAuth).length
   const authCount = NAV_ITEMS.filter((i) => i.requireAuth).length
   return (

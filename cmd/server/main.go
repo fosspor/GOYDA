@@ -13,6 +13,7 @@ import (
 	"github.com/fosspor/GOYDA/internal/handlers"
 	"github.com/fosspor/GOYDA/internal/migrate"
 	"github.com/fosspor/GOYDA/internal/middleware"
+	"github.com/fosspor/GOYDA/internal/spa"
 	"github.com/fosspor/GOYDA/internal/store"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -95,6 +96,8 @@ func main() {
 
 	app.Post("/api/ai/generate-route", api.GenerateRoute)
 	app.Get("/api/ai/recommendations", api.AIRecommendations)
+
+	spa.Register(app)
 
 	log.Printf("listening on %s", cfg.HTTPAddr)
 	go func() {

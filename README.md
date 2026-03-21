@@ -15,9 +15,29 @@ docker compose up --build
 API: `http://localhost:8080`  
 Health: `GET /health`
 
+После `docker compose up --build` **интерфейс вшит в образ**: откройте **`http://localhost:8080`** — тот же порт, что и у API (линия **B**: один origin, без CORS между UI и `/api`).
+
+Проверка:
+
+```bash
+./scripts/smoke.sh http://127.0.0.1:8080
+```
+
+В браузере: регистрация → профиль → локации → AI → сохранение маршрута → создание локации.
+
 ## Фронтенд (SPA)
 
 В репозитории есть клиент на `Vite + React + TypeScript` в [`frontend`](./frontend). Интерфейс оформлен как справочник эндпоинтов в духе [alt:V NativeDB](https://natives.altv.mp/): тёмная тема, боковая навигация с группами и поиском.
+
+### Режим «только Docker» (UI уже в образе)
+
+```bash
+docker compose up --build
+```
+
+Откройте `http://localhost:8080`.
+
+### Режим разработки (hot reload, Vite на :3000)
 
 1. Запустите API и БД:
 
@@ -25,7 +45,7 @@ Health: `GET /health`
 docker compose up --build
 ```
 
-2. В отдельном терминале запустите фронтенд:
+2. В отдельном терминале:
 
 ```bash
 cd frontend
@@ -35,7 +55,16 @@ npm run dev
 ```
 
 SPA: `http://localhost:3000`  
-По умолчанию API берётся из `VITE_API_URL=http://localhost:8080`.
+В `.env` задайте `VITE_API_URL=http://localhost:8080`.
+
+### Сборка бинаря со вшитым SPA (локально)
+
+```bash
+./scripts/sync-spa-dist.sh
+go build -tags embed -o bin/server ./cmd/server
+```
+
+Без тега `embed` бинарь отдаёт только API; UI тогда через `npm run dev` или отдельный хостинг.
 
 ## Локально (без Docker-образа API)
 

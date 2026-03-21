@@ -1,11 +1,23 @@
 # syntax=docker/dockerfile:1
+
+FROM node:20-alpine AS frontend
+WORKDIR /fe
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend/ ./
+# Пустой URL → fetch на тот же origin (:8080)
+ARG VITE_API_URL=
+ENV VITE_API_URL=$VITE_API_URL
+RUN npm run build
+
 FROM golang:1.22-alpine AS build
 WORKDIR /src
 RUN apk add --no-cache ca-certificates git
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/server ./cmd/server
+COPY --from=frontend /fe/dist /src/internal/spa/dist
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -tags embed -o /out/server ./cmd/server
 
 FROM alpine:3.20
 RUN apk add --no-cache ca-certificates tzdata
