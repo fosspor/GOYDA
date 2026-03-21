@@ -13,10 +13,11 @@ RUN npm run build
 FROM golang:1.22-alpine AS build
 WORKDIR /src
 RUN apk add --no-cache ca-certificates git
+ENV GOFLAGS=-mod=mod
 COPY go.mod ./
 RUN go mod download
 COPY . .
-RUN go mod tidy
+RUN go mod tidy && go mod download
 COPY --from=frontend /fe/dist /src/internal/spa/dist
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -tags embed -o /out/server ./cmd/server
 
