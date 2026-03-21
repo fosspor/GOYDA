@@ -11,6 +11,24 @@ type RequestOptions = {
   body?: unknown
 }
 
+export class ApiError extends Error {
+  status: number
+
+  constructor(status: number, message: string) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+  }
+}
+
+export function isApiError(err: unknown): err is ApiError {
+  return err instanceof ApiError
+}
+
+export function getApiBaseUrl() {
+  return API_PREFIX === '' ? window.location.origin : API_PREFIX
+}
+
 async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -25,7 +43,10 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   })
   if (!res.ok) {
     const data = await res.json().catch(() => ({}))
-    throw new Error(data.detail ?? `HTTP ${res.status}`)
+    throw new ApiError(res.status, data.detail ?? `HTTP ${res.status}`)
+  }
+  if (res.status === 204) {
+    return undefined as T
   }
   return (await res.json()) as T
 }

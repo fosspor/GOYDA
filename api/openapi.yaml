@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: GOYDA API
-  version: 1.0.0
+  version: 1.1.0
   description: API персональных маршрутов (Краснодарский край)
 servers:
   - url: http://localhost:8080
@@ -12,6 +12,10 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
   /api/auth/register:
     post:
       summary: Register
@@ -20,17 +24,18 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required: [email, password]
-              properties:
-                email: { type: string }
-                password: { type: string, minLength: 6 }
-                display_name: { type: string }
-                interests:
-                  type: array
-                  items: { type: string }
+              $ref: "#/components/schemas/RegisterRequest"
       responses:
-        "201": { description: Created }
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          $ref: "#/components/responses/ErrorBadRequest"
+        "409":
+          $ref: "#/components/responses/ErrorConflict"
   /api/auth/login:
     post:
       summary: Login
@@ -39,47 +44,91 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required: [email, password]
-              properties:
-                email: { type: string }
-                password: { type: string }
+              $ref: "#/components/schemas/LoginRequest"
       responses:
-        "200": { description: OK }
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          $ref: "#/components/responses/ErrorBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrorUnauthorized"
   /api/me:
     get:
       summary: Current user
-      security: [{ bearerAuth: [] }]
+      security:
+        - bearerAuth: []
       responses:
-        "200": { description: OK }
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/ErrorUnauthorized"
     patch:
       summary: Update interests
-      security: [{ bearerAuth: [] }]
+      security:
+        - bearerAuth: []
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                interests:
-                  type: array
-                  items: { type: string }
+              $ref: "#/components/schemas/PatchMeRequest"
       responses:
-        "200": { description: OK }
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ErrorBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrorUnauthorized"
   /api/locations:
     get:
       summary: List locations
       parameters:
         - in: query
           name: search
-          schema: { type: string }
+          schema:
+            type: string
       responses:
-        "200": { description: OK }
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Location"
     post:
       summary: Create location
-      security: [{ bearerAuth: [] }]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LocationCreateRequest"
       responses:
-        "201": { description: Created }
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Location"
+        "400":
+          $ref: "#/components/responses/ErrorBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrorUnauthorized"
   /api/locations/{id}:
     get:
       summary: Get location
@@ -87,60 +136,358 @@ paths:
         - in: path
           name: id
           required: true
-          schema: { type: string, format: uuid }
+          schema:
+            type: string
+            format: uuid
       responses:
-        "200": { description: OK }
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Location"
+        "400":
+          $ref: "#/components/responses/ErrorBadRequest"
+        "404":
+          $ref: "#/components/responses/ErrorNotFound"
   /api/routes:
     get:
       summary: My routes
-      security: [{ bearerAuth: [] }]
+      security:
+        - bearerAuth: []
       responses:
-        "200": { description: OK }
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Route"
+        "401":
+          $ref: "#/components/responses/ErrorUnauthorized"
     post:
       summary: Create route
-      security: [{ bearerAuth: [] }]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RouteCreateRequest"
       responses:
-        "201": { description: Created }
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Route"
+        "400":
+          $ref: "#/components/responses/ErrorBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrorUnauthorized"
   /api/routes/{id}:
     get:
       summary: Get my route
-      security: [{ bearerAuth: [] }]
+      security:
+        - bearerAuth: []
       parameters:
         - in: path
           name: id
           required: true
-          schema: { type: string, format: uuid }
+          schema:
+            type: string
+            format: uuid
       responses:
-        "200": { description: OK }
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Route"
+        "400":
+          $ref: "#/components/responses/ErrorBadRequest"
+        "401":
+          $ref: "#/components/responses/ErrorUnauthorized"
+        "404":
+          $ref: "#/components/responses/ErrorNotFound"
   /api/ai/generate-route:
     post:
       summary: Generate route (Yandex or mock)
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                interests:
-                  type: array
-                  items: { type: string }
-                season: { type: string }
-                days: { type: integer }
-                notes: { type: string }
+              $ref: "#/components/schemas/GenerateRouteRequest"
       responses:
-        "200": { description: OK }
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateRouteResponse"
+        "400":
+          $ref: "#/components/responses/ErrorBadRequest"
   /api/ai/recommendations:
     get:
       summary: Recommendations by season
       parameters:
         - in: query
           name: season
-          schema: { type: string }
+          schema:
+            type: string
       responses:
-        "200": { description: OK }
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecommendationsResponse"
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  responses:
+    ErrorBadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    ErrorUnauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    ErrorNotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    ErrorConflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        service:
+          type: string
+        status:
+          type: string
+      required:
+        - service
+        - status
+    ErrorResponse:
+      type: object
+      properties:
+        detail:
+          type: string
+      required:
+        - detail
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        display_name:
+          type: string
+        interests:
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - email
+        - display_name
+        - interests
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+      required:
+        - token
+        - user
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+          minLength: 6
+        display_name:
+          type: string
+        interests:
+          type: array
+          items:
+            type: string
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    PatchMeRequest:
+      type: object
+      properties:
+        interests:
+          type: array
+          items:
+            type: string
+    Location:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        seasons:
+          type: array
+          items:
+            type: string
+        lat:
+          type: number
+          nullable: true
+        lng:
+          type: number
+          nullable: true
+        media_urls:
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - name
+        - description
+        - category
+        - seasons
+        - media_urls
+    LocationCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        seasons:
+          type: array
+          items:
+            type: string
+        lat:
+          type: number
+          nullable: true
+        lng:
+          type: number
+          nullable: true
+        media_urls:
+          type: array
+          items:
+            type: string
+    Route:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        season:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - user_id
+        - title
+        - season
+        - payload
+        - created_at
+    RouteCreateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        season:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+    GenerateRouteRequest:
+      type: object
+      properties:
+        interests:
+          type: array
+          items:
+            type: string
+        season:
+          type: string
+        days:
+          type: integer
+        notes:
+          type: string
+    GenerateRouteResponse:
+      type: object
+      properties:
+        source:
+          type: string
+          enum: [mock, yandex]
+        user_id:
+          type: string
+          nullable: true
+        route:
+          type: object
+          additionalProperties: true
+        raw:
+          type: object
+          additionalProperties: true
+    RecommendationsResponse:
+      type: object
+      properties:
+        season:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Location"
+      required:
+        - season
+        - items
