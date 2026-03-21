@@ -6,4 +6,7 @@ BASE="${1:-http://127.0.0.1:8080}"
 printf 'GET %s/health ... ' "$BASE"
 curl -sfS "$BASE/health" | head -c 300
 echo
+printf 'GET %s/api/locations ... ' "$BASE"
+curl -sfS "$BASE/api/locations" | head -c 400
+echo
 echo "OK"

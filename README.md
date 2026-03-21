@@ -23,6 +23,11 @@ Health: `GET /health`
 ./scripts/smoke.sh http://127.0.0.1:8080
 ```
 
+Подробный чеклист (браузер, без Docker): [`docs/local-smoke.md`](docs/local-smoke.md).  
+CI после изменений в `main`: [Actions](https://github.com/fosspor/GOYDA/actions).
+
+Идеи следующих итераций: [`docs/NEXT.md`](docs/NEXT.md).
+
 В браузере: регистрация → профиль → локации → AI → сохранение маршрута → создание локации.
 
 ## Фронтенд (SPA)

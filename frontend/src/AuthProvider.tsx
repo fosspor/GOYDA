@@ -1,12 +1,7 @@
-import { createContext, useContext, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
+import { AuthContext } from './auth-context'
 
-type AuthContextValue = {
-  token: string | null
-  setToken: (value: string | null) => void
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null)
 const STORAGE_KEY = 'goyda_token'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -21,12 +16,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
   const value = useMemo(() => ({ token, setToken }), [token])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext)
-  if (!ctx) {
-    throw new Error('useAuth must be used within AuthProvider')
-  }
-  return ctx
 }

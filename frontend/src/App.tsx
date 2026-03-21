@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { FormEvent, ReactElement } from 'react'
 import {
   Link,
@@ -24,7 +24,7 @@ import {
   patchMe,
   register,
 } from './api'
-import { useAuth } from './auth'
+import { useAuth } from './useAuth'
 import { NAV_GROUPS, NAV_ITEMS } from './nav'
 import type { Location, RouteItem, User } from './types'
 
@@ -225,15 +225,32 @@ function LocationsPage() {
   const [items, setItems] = useState<Location[]>([])
   const [search, setSearch] = useState('')
   const [error, setError] = useState('')
-  const load = async (q = '') => {
+  const load = useCallback(async (q = '') => {
     try {
+      const data = await listLocations(q)
+      setItems(data)
       setError('')
-      setItems(await listLocations(q))
     } catch (e) {
       setError((e as Error).message)
     }
-  }
-  useEffect(() => { void load() }, [])
+  }, [])
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      try {
+        const data = await listLocations('')
+        if (!cancelled) {
+          setItems(data)
+          setError('')
+        }
+      } catch (e) {
+        if (!cancelled) setError((e as Error).message)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
   return (
     <section className="ndb-panel">
       <h2 className="ndb-panel-title">
@@ -277,9 +294,9 @@ function RecommendationsPage() {
   const [error, setError] = useState('')
   const load = async () => {
     try {
-      setError('')
       const data = await aiRecommendations(season)
       setItems(data.items)
+      setError('')
     } catch (e) {
       setError((e as Error).message)
     }
@@ -425,11 +442,33 @@ function RoutesPage() {
   const [season, setSeason] = useState('')
   const [payload, setPayload] = useState('{}')
   const [error, setError] = useState('')
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!token) return
-    setRoutes(await listRoutes(token))
-  }
-  useEffect(() => { void load() }, [token])
+    try {
+      setRoutes(await listRoutes(token))
+      setError('')
+    } catch (e) {
+      setError((e as Error).message)
+    }
+  }, [token])
+  useEffect(() => {
+    if (!token) return
+    let cancelled = false
+    void (async () => {
+      try {
+        const data = await listRoutes(token)
+        if (!cancelled) {
+          setRoutes(data)
+          setError('')
+        }
+      } catch (e) {
+        if (!cancelled) setError((e as Error).message)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [token])
   const onCreate = async (e: FormEvent) => {
     e.preventDefault()
     if (!token) return
@@ -550,8 +589,9 @@ function AIPage() {
   const onGenerate = async (e: FormEvent) => {
     e.preventDefault()
     try {
+      const data = await aiGenerate({ interests: parseCSV(interests), season, days, notes }, token)
+      setResult(data)
       setError('')
-      setResult(await aiGenerate({ interests: parseCSV(interests), season, days, notes }, token))
     } catch (err) {
       setError((err as Error).message)
     }
