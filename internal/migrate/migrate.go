@@ -5,11 +5,15 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
+
+// Только базовые имена файлов внутри dir (без path traversal).
+var migrationFileRe = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.-]*\.sql$`)
 
 func Up(ctx context.Context, pool *pgxpool.Pool, dir string) error {
 	entries, err := os.ReadDir(dir)
@@ -21,9 +25,12 @@ func Up(ctx context.Context, pool *pgxpool.Pool, dir string) error {
 		if e.IsDir() {
 			continue
 		}
-		if strings.HasSuffix(strings.ToLower(e.Name()), ".sql") {
-			names = append(names, e.Name())
+		name := e.Name()
+		ln := strings.ToLower(name)
+		if !migrationFileRe.MatchString(ln) || filepath.Base(name) != name {
+			continue
 		}
+		names = append(names, name)
 	}
 	sort.Strings(names)
 	for _, n := range names {
